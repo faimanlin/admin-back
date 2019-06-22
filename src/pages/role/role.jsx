@@ -4,8 +4,10 @@ import AddForm from './add-from'
 import AuthForm from './auth-from'
 import { PAGE_SIZE } from '../../utils/constants'
 import { reqRoles, reqAddRole, reqUpdateRole } from '../../api'
-import memoryUtils from '../../utils/memoryUtils'
+import { connect } from 'react-redux'
+import storageUtils from '../../utils/storageUtils.js'
 import { formateDate, formateDate1 } from '../../utils/dateUtils'
+import { logout } from '../../redux/actions'
 
 /**
  * 角色
@@ -123,19 +125,28 @@ class Role extends React.Component {
     console.log(menus)
     role.menus = menus
     role.auth_time = Date.now
-    role.auth_name = memoryUtils.user.username
-    console.log(memoryUtils.user.username)
+    role.auth_name = this.props.user.username
+    console.log(this.props.user.username)
     //请求更新
     const result = await reqUpdateRole(role)
     if (result.status === 0) {
-      message.success("更新权限成功")
+
       //更新方法1.
       //this.getRoles()
       //更新方法2
       //由于引用变量的原因可以不用再请求查询接口
-      this.setState({
-        roles: [...this.state.roles]
-      })
+
+      //如果当前更新的事自己角色的权限,强制退出
+      if (role._id === this.props.user.role_id) {
+        this.props.logout()
+        message.success("当前用户角色权限修改了,请重新登录")
+      } else {
+        this.setState({
+          roles: [...this.state.roles]
+        })
+        message.success("更新权限成功")
+      }
+
     } else {
       message.success("更新权限失败")
     }
@@ -166,7 +177,16 @@ class Role extends React.Component {
           columns={this.columns}
           loading={loading}
           pagination={{ defaultPageSize: PAGE_SIZE, showQuickJumper: true }}
-          rowSelection={{ type: 'radio', selectedRowKeys: [role._id] }}
+          rowSelection={{
+            type: 'radio',
+            selectedRowKeys: [role._id],
+            onSelect: (role) => { //选择某个radio时回调
+              this.setState({
+                role
+              })
+            }
+
+          }}
           onRow={this.onRow}
         ></Table>
         <Modal
@@ -198,4 +218,7 @@ class Role extends React.Component {
   }
 }
 
-export default Role
+export default connect(
+  state => ({ user: state.user }),
+  { logout }
+)(Role)

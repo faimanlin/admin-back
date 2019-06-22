@@ -143,7 +143,7 @@ class ProductHome extends React.Component {
     return (
       <Card title={title} extra={extra}>
         <Table loading={loading} dataSource={products} columns={this.columns} rowKey="_id" bordered
-          pagination={{ total: total, defaultPageSize: PAGE_SIZE, showQuickJumper: true, onChange: (pageNum) => { this.getProducts(pageNum) } }} />;
+          pagination={{ current: this.pageNum, total: total, defaultPageSize: PAGE_SIZE, showQuickJumper: true, onChange: (pageNum) => { this.getProducts(pageNum) } }} />;
       </Card>
     )
   }

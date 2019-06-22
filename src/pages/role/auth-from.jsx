@@ -9,7 +9,7 @@ const { TreeNode } = Tree
 /**
  * 添加分类的from组件
  */
-class AuthForm extends React.Component {
+class AuthForm extends React.PureComponent {
 
   static propsType = {
     role: PropsTypes.object

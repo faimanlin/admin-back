@@ -10,7 +10,7 @@ const { TextArea } = Input
 
 
 
-class ProductAddUpdate extends React.Component {
+class ProductAddUpdate extends React.PureComponent {
 
 
   state = {

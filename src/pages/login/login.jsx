@@ -1,11 +1,13 @@
 import React from 'react'
 import { Form, Icon, Input, Button, message } from 'antd';
 import { Redirect } from 'react-router-dom'
+import { connect } from 'react-redux'
 import './login.less'
 import logo from '../../assets/images/logo.png'
-import { reqLogin } from '../../api'
-import memoryUtils from '../../utils/memoryUtils';
-import storageUtils from '../../utils/storageUtils';
+import { login } from '../../redux/actions'
+// import { reqLogin } from '../../api'
+// import memoryUtils from '../../utils/memoryUtils';
+// import storageUtils from '../../utils/storageUtils';
 
 /*
 登陆的路由组件
@@ -21,24 +23,27 @@ class Login extends React.Component {
     this.props.form.validateFields(async (err, values) => {
       //校验成功
       if (!err) {
-        // console.log('提交登录的ajax请求', values)
+        // // console.log('提交登录的ajax请求', values)
         const { username, password } = values
-        const result = await reqLogin(username, password);
-        if (result.status === 0) {
-          //提示登录成功
-          message.success('登陆成功')
+        // const result = await reqLogin(username, password);
+        // if (result.status === 0) {
+        //   //提示登录成功
+        //   message.success('登陆成功')
 
-          // 保存user
-          const user = result.data
-          memoryUtils.user = user //保存在内存中
-          storageUtils.saveUser(user)
+        //   // 保存user
+        //   const user = result.data
+        //   memoryUtils.user = user //保存在内存中
+        //   storageUtils.saveUser(user)
 
-          //跳转到管理界面
-          this.props.history.replace('/')
-        } else { //登录失败
-          //提示错误信息
-          message.error(result.msg)
-        }
+        //   //跳转到管理界面
+        //   this.props.history.replace('/home')
+        // } else { //登录失败
+        //   //提示错误信息
+        //   message.error(result.msg)
+        // }
+
+        //调用分发异步action的函数 =>发登录的异步请求,有了结果后更新状态
+        this.props.login(username, password)
       } else {
         console.log('校验失败')
       }
@@ -71,10 +76,12 @@ class Login extends React.Component {
     const { getFieldDecorator } = form;
 
     //如果用户已经登录,自动跳转到管理界面
-    const user = memoryUtils.user
-    if (user._id) {
-      return <Redirect to='/' />
+    const user = this.props.user
+    if (user && user._id) {
+      return <Redirect to='/home' />
     }
+
+    // const errorMsg = this.props.user.errorMsg
 
     return (
       <div className="login">
@@ -83,6 +90,7 @@ class Login extends React.Component {
           <h1>React-后台管理项目</h1>
         </header>
         <section className="login-content">
+          <div className={user.errorMsg ? 'error-msg show' : 'error-msg'}>{user.errorMsg} </div>
           <h2>用户登录</h2>
           <Form onSubmit={this.handleSubmit} className="login-form">
             <Form.Item>
@@ -148,7 +156,9 @@ class Login extends React.Component {
 新组件会向Form组件传递一个强大的对象属性:form
  */
 const WrapLogin = Form.create()(Login)
-export default WrapLogin
+export default connect(
+  state => ({ user: state.user }),
+  { login })(WrapLogin)
 /**
  * 1.前台表单验证.
  * 2.手机表单输入数据
